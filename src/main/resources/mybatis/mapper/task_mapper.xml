@@ -2,6 +2,10 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.zhangruiqiang.mapper.TaskMapper" >
 
+    <resultMap id="comparycode" type="com.zhangruiqiang.pojo.T_submit_platform_base_info">
+        <result column="business_license" jdbcType="VARCHAR" property="business_licence"/>
+        <result column="unified_code" jdbcType="VARCHAR" property="unified_code"/>
+    </resultMap>
 
     <select id="platformregistercheck" parameterType="java.lang.String" resultType="java.lang.Integer">
           select count(*) from(
@@ -15,14 +19,200 @@
 
     </select>
 
+    <select id="companycodecheck" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select count(case when business_license =null and unified_code =null then 1 else null end ) from t_submit_platform_base_info  where subject_no=#{subject_no}
+
+    </select>
+
     <select id="companycode" parameterType="java.lang.String" resultMap="comparycode" >
           select business_license,unified_code from t_submit_platform_base_info  where subject_no=#{subject_no}
 
     </select>
 
-    <resultMap id="comparycode" type="com.zhangruiqiang.pojo.T_submit_platform_base_info">
-        <result column="business_license" jdbcType="VARCHAR" property="business_licence"/>
-        <result column="unified_code" jdbcType="VARCHAR" property="unified_code"/>
-    </resultMap>
 
+
+<!--
+    //借款人类型为平台用户 机构或者公司编码校验  结果必须等于0
+-->
+    <select id="borrcodecheck" parameterType="java.lang.String" resultType="java.lang.Integer">
+
+      select count(case
+               when user_type = 'ORGANIZATION' and business_license = null and
+                    unified_code = null then
+                1
+               else
+                null
+             end)
+       from t_submit_borrower_newlys  where subject_no=#{subject_no}
+
+
+    </select>
+
+
+<!--
+    //代偿人 机构或者公司编码校验   结果等于0
+-->
+    <select id="checkdccode" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select count(case
+               when  business_license = null and
+                    unified_code = null then
+                1
+               else
+                null
+             end)
+  from t_submit_compary where  subject_no=#{subject_no}
+
+
+    </select>
+
+<!--
+    //标的期限为0占比
+-->
+    <select id="projecttime" parameterType="java.lang.String" resultType="java.lang.Integer">
+
+  select count(case
+               when project_period = 0 then
+                1
+               else
+                null
+             end) / count(*)
+  from t_submit_project_base_info
+ where subject_no = #{subject_no}
+
+    </select>
+<!--
+    //标的记录与放款明细校验   ******* 验证标的是否存在出借明细，查到的结果是不存在出借记录的标的
+-->
+    <select id="projecthasloancheck" parameterType="java.lang.String" resultType="com.zhangruiqiang.pojo.T_submit_project_base_info">
+
+         select *
+    from t_submit_project_base_info
+   where project_no not in
+         (select p.project_no
+            from t_submit_loan_info l
+           inner join t_submit_project_base_info p on l.platform_no =
+                                                      p.platform_no
+                                                  and l.project_no =
+                                                      p.project_no
+           where p.subject_no = #{subject_no})
+           and subject_no= #{subject_no}
+    </select>
+
+<!--
+    判断标的的个数和出借人所出借的标的是否相等，结果最好一致
+-->
+    <select id="chepjandloanpj" parameterType="java.lang.String" resultType="java.lang.Integer">
+
+select count(*)
+from (
+    (
+      select
+        PLATFORM_NO,
+        PROJECT_NO,
+        count(PROJECT_NO)
+      from T_SUBMIT_PROJECT_BASE_INFO
+      where SUBJECT_NO = #{subject_no}
+      group by PLATFORM_NO, PROJECT_NO) a left join
+
+    (select
+       PLATFORM_NO,
+       PROJECT_NO,
+       count(PROJECT_NO)
+     from T_SUBMIT_LOAN_INFO
+     where SUBJECT_NO =#{subject_no}
+     group by PLATFORM_NO, PROJECT_NO) b on a.PLATFORM_NO = b.PLATFORM_NO and a.project_no = b.project_no);
+
+    </select>
+    <!--实际标的个数-->
+    <select id="pjcount" parameterType="java.lang.String" resultType="java.lang.Integer">
+       select count(*)
+from (
+    (
+      select
+        PLATFORM_NO,
+        PROJECT_NO,
+        count(PROJECT_NO)
+      from T_SUBMIT_PROJECT_BASE_INFO
+      where SUBJECT_NO = #{subject_no}
+      group by PLATFORM_NO, PROJECT_NO) a inner join
+
+    (select
+       PLATFORM_NO,
+       PROJECT_NO,
+       count(PROJECT_NO)
+     from T_SUBMIT_LOAN_INFO
+     where SUBJECT_NO =#{subject_no}
+     group by PLATFORM_NO, PROJECT_NO) b on a.PLATFORM_NO = b.PLATFORM_NO and a.project_no = b.project_no);
+    </select>
+
+
+<!--
+    统计还款记录中的代偿人不在代偿人文件中的个数    结果显示没有代偿人信息的代偿记录
+-->
+<select id="checkhasnodccount" parameterType="java.lang.String" resultType="com.zhangruiqiang.pojo.T_submit_repay_info">
+    select *
+  from ((select platform_no, compary_user_no
+           from (select distinct platform_no, compary_user_no
+                   from t_submit_repay_info
+                  where subject_no = #{subject_no}
+                    and compary_user_no is not null)) a left join
+        (select distinct platform_no, user_no
+           from t_submit_compary
+          where subject_no = #{subject_no}) b on
+        a.platform_no = b.platform_no and a.compary_user_no = b.user_no) where user_no is null
+
+</select>
+<!--
+    校验存在标的是否都存在出借明细
+-->
+
+    <select id="checkpjloan" parameterType="java.lang.String" resultType="java.lang.Integer">
+
+select count(*)
+  from t_submit_project_base_info
+ where project_no in
+       (
+
+        select project_no1
+          from ((select platform_no, project_no project_no1
+                    from t_submit_project_base_info where subject_no= #{subject_no}) a inner join
+                 (select platform_no, project_no from t_submit_loan_info where subject_no= #{subject_no}) b on
+                 a.platform_no = b.platform_no and a.project_no1 = b.project_no))
+
+    </select>
+<!--
+    借款人借款次数与标的数的对比，展示的结果为出借次数与实际标的个数不相同的数量
+-->
+    <select id="checkbrandpjcount" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select count(*)
+  from (
+
+        select *
+          from ((select platform_no, user_no, total_borrowing_times cishu
+                    from t_submit_borrower_newlys
+                   where subject_no = #{subject_no}) a left join
+                 (select platform_no, user_no, count(*) cishu2
+                    from t_submit_project_base_info
+                   where subject_no =#{subject_no}
+                   group by platform_no, user_no) b on
+                 a.platform_no = b.platform_no and a.user_no = b.user_no)
+
+        ) c
+ where c.cishu != c.cishu2
+
+    </select>
+
+<!--
+    统计没有标的的借款人
+-->
+   <!-- <select id="checknopjbr" parameterType="java.lang.String" resultType="java.lang.Integer">
+
+select *
+from T_SUBMIT_BORROWER_NEWLYS
+where SUBJECT_NO = #{subject_no} and USER_NO not in (
+  select p.USER_NO
+  from T_SUBMIT_BORROWER_NEWLYS b inner join T_SUBMIT_PROJECT_BASE_INFO p
+      on b.PLATFORM_NO = p.PLATFORM_NO and b.USER_NO = p.USER_NO
+  where b.SUBJECT_NO = #{subject_no})
+    </select>-->
 </mapper>
