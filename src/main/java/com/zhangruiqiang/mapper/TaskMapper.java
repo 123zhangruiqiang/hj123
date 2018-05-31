@@ -10,13 +10,13 @@ import java.util.List;
 import java.util.Map;
 
 public interface TaskMapper {
-
+    public Integer selectptcount(String subject_no);
     public Integer platformregistercheck(String subject_no);
     public Integer companycodecheck(String subject_no);
     public List<T_submit_platform_base_info> companycode(String subject_no);
     public Integer borrcodecheck(String subject_no);
     public Integer checkdccode(String subject_no);
-    public Integer projecttime(String subject_no);
+    public Float projecttime(String subject_no);
 
     public List<T_submit_project_base_info> projecthasloancheck(String subject_no);
     public Integer chepjandloanpj(String subject_no);
@@ -30,4 +30,11 @@ public interface TaskMapper {
     public List<Map<String,String>> checktzwithpj(String subject_no);
     public List<Map<String,String>> checkthreeequal(String subject_no);
     public Integer checkthreerepayequal(String subject_no);
+    public List<Map<String,String>> checkpjmwithlom (String subject_no);
+    public List<Map<String,String>> checkpjandloan(String subject_no);
+    public Integer checkinvesbyzero(String subject_no);
+    public List<Map<String,String>> checkbrmoneywithpjmoney(String subject_no);
+    public List<Map<String,Object>> checkhkandpjcount(String subject_no);
+
+    public List<Map<String,Object>>  checkloanandhkcount(String subject_no);
 }

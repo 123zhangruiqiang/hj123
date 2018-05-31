@@ -3,6 +3,12 @@
 <mapper namespace="com.zhangruiqiang.mapper.TaskMapper" >
 
 
+    <!--平台个数查询-->
+    <select id="selectptcount" parameterType="java.lang.String" resultType="java.lang.Integer">
+
+        select count(*) from HJ.T_SUBMIT_PLATFORM_BASE_INFO where SUBJECT_NO=#{subject_no}
+
+    </select>
 
     <select id="platformregistercheck" parameterType="java.lang.String" resultType="java.lang.Integer">
           select count(*) from(
@@ -68,7 +74,7 @@
 <!--
     //标的期限为0占比
 -->
-    <select id="projecttime" parameterType="java.lang.String" resultType="java.lang.Integer">
+    <select id="projecttime" parameterType="java.lang.String" resultType="java.lang.Float">
 
   select count(case
                when project_period = 0 then
@@ -273,6 +279,7 @@ select b.project_no
     <!--交易量等于放款交易汇总等于借款人交易汇总的平台个数-->
     <select id="checkthreeequal" parameterType="java.lang.String" resultType="java.util.HashMap">
 
+
         select borpt,borrmoney,pjmoney,inmoney  from (
 
        (select platform_no borpt, sum(total_ioan_amount) borrmoney
@@ -311,11 +318,111 @@ select count(case when bm-nonmoney=0 then 1 else null end) from
          from t_submit_repay_info b
         where subject_no = #{subject_no} and compary_user_no is not null
         group by platform_no ) c on a.lopt =c.compt ) ) ) a  left join (
-        select platform_no ,sum(b.non_repayment_amount) nonmoney from t_submit_borrower_base_info b where subject_no=#{subject_no}  group by platform_no
+        select platform_no ,sum(b.non_repayment_amount) nonmoney from t_submit_borrower_newlys b where subject_no=#{subject_no}  group by platform_no
 
         ) b on a.lopt=b.platform_no
 
 
     </select>
 
+    <!--标的金额和出借标的金额不相等的个数-->
+
+    <select id="checkpjmwithlom" parameterType="java.lang.String" resultType="java.util.HashMap">
+
+
+select *
+  from ((select platform_no, project_no, sum(total_investment)cishu1,TOTAL_LOAN_MONEY
+           from t_submit_project_base_info
+          where subject_no = #{subject_no}
+          group by platform_no, project_no,TOTAL_LOAN_MONEY) a inner join
+        (select platform_no, project_no, count(project_no) cishu2,sum(amount) rep
+           from t_submit_loan_info
+          where subject_no = #{subject_no}
+          group by platform_no, project_no) b on
+        a.platform_no = b.platform_no and a.project_no = b.project_no) where  TOTAL_LOAN_MONEY-rep!=0
+
+
+
+
+
+
+    </select>
+
+    <!--统计标的和出借明细是否完全匹配-->
+    <select id="checkpjandloan" parameterType="java.lang.String" resultType="java.util.HashMap">
+
+
+with a as (select count(*) inn
+           from T_SUBMIT_PROJECT_BASE_INFO p inner join T_SUBMIT_LOAN_INFO l
+               on l.PLATFORM_NO = p.PLATFORM_NO and p.PROJECT_NO = l.PROJECT_NO
+           where p.SUBJECT_NO = #{subject_no}),
+    b as (select count(*) lef
+          from T_SUBMIT_PROJECT_BASE_INFO p left join T_SUBMIT_LOAN_INFO l
+              on l.PLATFORM_NO = p.PLATFORM_NO and p.PROJECT_NO = l.PROJECT_NO
+          where p.SUBJECT_NO = #{subject_no}),
+    c as (select count(*) ri
+          from T_SUBMIT_PROJECT_BASE_INFO p right join T_SUBMIT_LOAN_INFO l
+              on l.PLATFORM_NO = p.PLATFORM_NO and p.PROJECT_NO = l.PROJECT_NO
+          where l.SUBJECT_NO = #{subject_no} )  select * from a,b,c where inn!=lef and inn!=ri and lef!=ri
+    </select>
+
+    <!--统计投资人文件中流入资金和流出资金为0的个数-->
+
+    <select id="checkinvesbyzero" parameterType="java.lang.String" resultType="java.lang.Integer">
+
+select count(*)
+from T_SUBMIT_INVESTOR_BASE_INFO
+where SUBJECT_NO = #{subject_no} and RECEIVED_PAYMENTS_AMOUNT = 0 or WITHDRAW_AMOUNT = 0
+order by store_time desc
+
+
+    </select>
+
+
+    <!--借款人的借款金额与其所借的所有标的的金额汇总是否相等-->
+    <select id="checkbrmoneywithpjmoney" parameterType="java.lang.String" resultType="java.util.HashMap">
+
+select * from (
+select
+  p.PLATFORM_NO,
+  p.USER_NO,
+  b.TOTAL_IOAN_AMOUNT,
+  sum(TOTAL_LOAN_MONEY) pjm
+from T_SUBMIT_BORROWER_NEWLYS b inner join T_SUBMIT_PROJECT_BASE_INFO p
+    on b.PLATFORM_NO = p.PLATFORM_NO and b.USER_NO = p.USER_NO
+where b.SUBJECT_NO = #{subject_no} group by p.PLATFORM_NO,p.USER_NO,b.TOTAL_IOAN_AMOUNT) where TOTAL_IOAN_AMOUNT-pjm!=0
+
+    </select>
+
+
+    <!--还款和标的相对应的个数是否相等-->
+    <select id="checkhkandpjcount" parameterType="java.lang.String" resultType="java.util.HashMap">
+        with a as (select count(*) inn
+           from T_SUBMIT_REPAY_INFO r inner join T_SUBMIT_PROJECT_BASE_INFO p
+               on r.PLATFORM_NO = p.PLATFORM_NO and r.PROJECT_NO = p.PROJECT_NO
+           where p.SUBJECT_NO = #{subject_no}),
+    b as (select count(*) lef
+          from T_SUBMIT_REPAY_INFO r left join T_SUBMIT_PROJECT_BASE_INFO p
+              on r.PLATFORM_NO = p.PLATFORM_NO and r.PROJECT_NO = p.PROJECT_NO
+          where p.SUBJECT_NO = #{subject_no}) select *
+                                            from a, b
+
+
+    </select>
+
+    <!--还款和出借相对应的个数是否相等-->
+
+    <select id="checkloanandhkcount" parameterType="java.lang.String" resultType="java.util.HashMap">
+
+with a as (select  count(*) lef
+from T_SUBMIT_REPAY_INFO r left join T_SUBMIT_LOAN_INFO l
+    on r.PROJECT_NO = l.PROJECT_NO and r.PLATFORM_NO = l.PLATFORM_NO and r.USER_NO = l.USER_NO
+where r.SUBJECT_NO = #{subject_no}), b as (select  count(*) inn
+from T_SUBMIT_REPAY_INFO r inner join T_SUBMIT_LOAN_INFO l
+    on r.PROJECT_NO = l.PROJECT_NO and r.PLATFORM_NO = l.PLATFORM_NO and r.USER_NO = l.USER_NO
+where r.SUBJECT_NO = #{subject_no}) select * from a,b
+
+
+
+    </select>
 </mapper>

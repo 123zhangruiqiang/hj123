@@ -17,6 +17,12 @@ public class TaskService {
     @Autowired
     private TaskMapper taskMapper;
 
+
+    public Integer selectptcount(String subject_no){
+        int res=taskMapper.selectptcount(subject_no);
+        return res;
+    }
+
     public Integer platformregistercheck(String subject_no){
        int res= taskMapper.platformregistercheck(subject_no);
        return res;
@@ -42,8 +48,8 @@ public class TaskService {
         return  res;
     }
 
-    public Integer projecttime(String subject_no){
-        int res=taskMapper.projecttime(subject_no);
+    public Float projecttime(String subject_no){
+        float res=taskMapper.projecttime(subject_no);
         return  res;
     }
 
@@ -98,4 +104,35 @@ public class TaskService {
         return  res;
     }
 
+    public List<Map<String,String>> checkpjmwithlom (String subject_no){
+        List<Map<String,String>> list=  taskMapper.checkpjmwithlom(subject_no);
+        return list;
+    }
+
+    public List<Map<String,String>> checkpjandloan(String subject_no){
+        List<Map<String,String>> list=taskMapper.checkpjandloan(subject_no);
+        return list;
+    }
+
+    public Integer checkinvesbyzero(String subject_no){
+        int res=taskMapper.checkinvesbyzero(subject_no);
+        return res;
+    }
+
+    public List<Map<String,String>> checkbrmoneywithpjmoney(String subject_no){
+        List<Map<String,String>> list=taskMapper.checkbrmoneywithpjmoney(subject_no);
+        return list;
+    }
+
+
+    public List<Map<String,Object>> checkhkandpjcount(String subject_no){
+        List<Map<String,Object>> list=taskMapper.checkhkandpjcount(subject_no);
+        return list;
+    }
+
+
+    public List<Map<String,Object>>  checkloanandhkcount(String subject_no){
+        List<Map<String,Object>> list=taskMapper.checkloanandhkcount(subject_no);
+        return list;
+    }
 }
