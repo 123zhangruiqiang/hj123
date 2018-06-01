@@ -60,14 +60,16 @@ public class FileUploadController {
         long contentLength=endbyte-startbyte+1;
         long overreadbytes=0;
         int len=0;
-       String contentType=httpServletRequest.getServletContext().getMimeType(file.getName());
+        String contentType=httpServletRequest.getServletContext().getMimeType(file.getName());
         System.out.println(contentType);
 
         httpServletResponse.setContentType(contentType);
-        String nfilename=filename.substring(0,filename.lastIndexOf(".")+1);
+        String nfilename=filename.substring(filename.lastIndexOf("/")+1);
      //   String nfilename=new String(filename.substring(filename.indexOf(".")+1).getBytes(),"utf-8");
-        httpServletResponse.setHeader("Content-Disposition", "attachment;filename=" +new String("中国.doc".getBytes("gbk")));
-        httpServletResponse.setHeader("content-type","application/octet-streams");
+        System.out.println(nfilename);
+        String filen=URLEncoder.encode(nfilename,"utf8");
+        httpServletResponse.setHeader("Content-Disposition", "attachment;filename=" +filen+";filename*=utf-8"+filen);
+       // httpServletResponse.setHeader("content-type","application/octet-streams");
         try {
             randomAccessFile=new RandomAccessFile(file,"r");
             OutputStream outputStream=httpServletResponse.getOutputStream();
@@ -75,6 +77,7 @@ public class FileUploadController {
           // len=fileInputStream.read(buff);
             len=randomAccessFile.read(buff);
             while( len !=-1){
+
                 outputStream.write(buff,0,buff.length);
                 overreadbytes+=buff.length;
                 len=randomAccessFile.read(buff);
