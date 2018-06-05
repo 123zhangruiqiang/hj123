@@ -1,6 +1,7 @@
 package com.zhangruiqiang.controller;
 
 import com.fasterxml.jackson.databind.util.JSONPObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +16,8 @@ import java.net.URLEncoder;
 
 @Controller
 public class FileUploadController {
-
+    @Value("${filepath.osx}")
+    private String filepath;
 
     @RequestMapping(value = "/uploadfile",method = RequestMethod.GET)
     public String showupload(){
@@ -28,8 +30,9 @@ public class FileUploadController {
        System.out.println("conmmint");
        // httpServletResponse.setHeader("Access-Control-Allow-Origin","*");
         String filename=multipartFile.getOriginalFilename();
-        String filepath="/Users/zhangruiqiang/Desktop/work/hj/src/main/resources";
+            //String filepath="/Users/zhangruiqiang/Desktop/work/hj/src/main/resources";
         File file=new File(filepath,filename);
+        System.out.println(filepath);
         try {
             multipartFile.transferTo(file);
         } catch (IOException e) {
