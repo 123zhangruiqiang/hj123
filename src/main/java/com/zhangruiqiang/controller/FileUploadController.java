@@ -18,6 +18,8 @@ import java.net.URLEncoder;
 public class FileUploadController {
     @Value("${filepath.osx}")
     private String filepath;
+    @Value("${filepath.win}")
+    private String filepp;
 
     @RequestMapping(value = "/uploadfile",method = RequestMethod.GET)
     public String showupload(){
