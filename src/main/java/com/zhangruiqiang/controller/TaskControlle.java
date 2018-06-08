@@ -23,10 +23,12 @@ public class TaskControlle {
     private TaskService taskService;
     private String subject_no="100000356";
 
+
     Logger logger=LoggerFactory.getLogger(TaskControlle.class);
 
     @RequestMapping(value = "dotask",method =RequestMethod.GET)
     public void dotask(String subject_no){
+
         int platformcount=taskService.selectptcount(subject_no);
         logger.info("平台注册地址编码校验，结果应当为0");
        int res= taskService.platformregistercheck(subject_no);

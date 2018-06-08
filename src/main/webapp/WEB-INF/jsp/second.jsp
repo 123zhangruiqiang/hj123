@@ -20,7 +20,7 @@
 </div>
 
 </body>
-<script src="../js/jquery.js"></script>
+<script src="${pageContext.request.contextPath}/js/jquery.js"></script>
 <script type="text/javascript">
 
     var button =document.getElementById("button");

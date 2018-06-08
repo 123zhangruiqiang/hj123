@@ -82,7 +82,6 @@ public class FileUploadController {
           // len=fileInputStream.read(buff);
             len=randomAccessFile.read(buff);
             while( len !=-1){
-
                 outputStream.write(buff,0,buff.length);
                 overreadbytes+=buff.length;
                 len=randomAccessFile.read(buff);
