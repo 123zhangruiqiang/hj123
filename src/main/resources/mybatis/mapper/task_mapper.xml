@@ -363,7 +363,7 @@ with a as (select count(*) inn
     c as (select count(*) ri
           from T_SUBMIT_PROJECT_BASE_INFO p right join T_SUBMIT_LOAN_INFO l
               on l.PLATFORM_NO = p.PLATFORM_NO and p.PROJECT_NO = l.PROJECT_NO
-          where l.SUBJECT_NO = #{subject_no} )  select * from a,b,c where inn!=lef and inn!=ri and lef!=ri
+          where l.SUBJECT_NO = #{subject_no} )  select * from a,b,where inn!=lef and inn!=ri and lef!=ri
     </select>
 
     <!--统计投资人文件中流入资金和流出资金为0的个数-->

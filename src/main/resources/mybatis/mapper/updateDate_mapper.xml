@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zhangruiqiang.mapper.UpdateDateMapper" >
+
+    
+    
+    <select id="getCompay" resultType="java.util.Map">
+
+        select USER_NO,USER_TYPE  from HJ.T_SUBMIT_COMPARY
+
+    </select>
+
+
+    <update id="updateComName" parameterType="java.lang.String">
+
+        update HJ.T_SUBMIT_COMPARY set HJ.T_SUBMIT_COMPARY.REAL_NAME=#{name} where HJ.T_SUBMIT_COMPARY.USER_NO=#{userNo}
+    </update>
+
+
+    <select id="getBr" resultType="java.util.Map">
+
+        select USER_NO,USER_TYPE  from HJ.T_SUBMIT_BORROWER_NEWLYS
+
+    </select>
+
+    <update id="updateBrName" parameterType="java.lang.String">
+
+        update HJ.T_SUBMIT_BORROWER_NEWLYS set HJ.T_SUBMIT_BORROWER_NEWLYS.REAL_NAME=#{name} where HJ.T_SUBMIT_BORROWER_NEWLYS.USER_NO=#{userNo}
+    </update>
+
+    <select id="getPjNo" resultType="java.lang.String">
+        select PROJECT_NO from HJ.T_SUBMIT_PROJECT_BASE_INFO;
+
+    </select>
+
+    <update id="updatePjName" parameterType="java.lang.String">
+
+        update HJ.T_SUBMIT_PROJECT_BASE_INFO set HJ.T_SUBMIT_PROJECT_BASE_INFO.PROJECT_NAME=#{name} where HJ.T_SUBMIT_PROJECT_BASE_INFO.PROJECT_NO=#{pjNo}
+    </update>
+
+
+</mapper>

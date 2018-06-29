@@ -30,12 +30,17 @@ public class TaskControlle {
     public void dotask(String subject_no){
 
         int platformcount=taskService.selectptcount(subject_no);
-        logger.info("平台注册地址编码校验，结果应当为0");
-       int res= taskService.platformregistercheck(subject_no);
-       logger.info("检查结果为："+res);
-       if(res==1){
+
+        logger.info("-------------------平台注册地址编码校验-----------------------");
+        logger.info("平台注册地址编码校验，结果应该大于1");
+        int res= taskService.platformregistercheck(subject_no);
+        logger.info("检查结果为："+res);
+        if(res==1){
            logger.error("请检查平台的注册地址编码，可能存在问题");
-       }
+        }
+        logger.info("-------------------结束平台注册地址编码校验-----------------------");
+
+        logger.info("-------------------开始平台机构或者公司编码校验------------------------");
         logger.info("平台机构或者公司编码校验  结果必须等于0");
         res =taskService.companycodecheck(subject_no);
        logger.info("检查结果为："+res);
@@ -46,12 +51,17 @@ public class TaskControlle {
             logger.error("请检查平台的注册公司编码，可能存在问题");
             logger.error("结果"+list);
         }
+        logger.info("-------------------结束平台机构或者公司编码校验------------------------");
+
+        logger.info("-------------------开始校验企业用户借款人和代偿人的注册编码------------------------");
         logger.info("借款人类型为平台用户 机构或者公司编码校验  结果必须等于0");
         res=taskService.borrcodecheck(subject_no);
         logger.info("检查结果为："+res);
         logger.info("代偿人 机构或者公司编码校验   结果等于0");
         res=taskService.checkdccode(subject_no);
         logger.info("检查结果为："+res);
+        logger.info("-------------------平台机构或者公司编码校验结束------------------------");
+
         logger.info("标的期限为0占比统计");
         float res1=taskService.projecttime(subject_no);
         logger.info("检查结果为："+res1);
@@ -147,8 +157,8 @@ public class TaskControlle {
 
         logger.info("借款人的借款金额与其所借的所有标的的金额汇总是否相等");
         List<Map<String,String>> list9=taskService.checkbrmoneywithpjmoney(subject_no);
-        if (list8.size()>0){
-            logger.error("存在借款人的借款金额与其所借的总标的数不相等");
+        if (list9.size()>0){
+            logger.error("存在借款人的借款金额与其所借的总标金额大小不相等");
             logger.error("检查结果为"+list9);
         }
 
@@ -168,7 +178,7 @@ public class TaskControlle {
 
         }
 
-        logger.info("还款和出借相对应的个数是否相等");
+        logger.info("------------------------开始验证还款笔数和出借笔数数是否相等----------------------------");
 
         List<Map<String,Object>> list11=taskService.checkloanandhkcount(subject_no);
         if(list11.size()>0){
@@ -176,10 +186,12 @@ public class TaskControlle {
             int inn =Integer.valueOf(list11.get(0).get("INN").toString());
             int lef=Integer.valueOf(list11.get(0).get("LEF").toString());
             if(lef-inn>0){
-                logger.error("还款和出借相对应的个数不相等,存在没有标的的还款");
-                logger.error("结果如下"+list11);
+                logger.error("还款笔数和出借笔数不相等,请检查数据");
+                logger.error("本次校验结果如下，差值为"+(lef-inn));
             }
         }
+
+        logger.info("------------------------结束验证----------------------------");
 
     }
 }
