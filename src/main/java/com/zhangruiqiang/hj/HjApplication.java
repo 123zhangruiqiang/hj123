@@ -21,6 +21,8 @@ public class HjApplication extends SpringBootServletInitializer {
 
 
 	public static void main(String[] args) {
+		String os =System.getProperty("os.name");
+		System.out.println(os);
 		SpringApplication.run(HjApplication.class, args);
 	}
 	
